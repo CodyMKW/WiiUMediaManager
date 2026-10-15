@@ -7,7 +7,7 @@ Instead of manually digging through obscure folder structures, this tool automat
 ## ✨ Features
 
 * **Zero Install & Local:** It's just a single HTML file. Open it in Chrome, Edge, or Firefox, and it works instantly.
-* **Auto-Discovery:** Automatically hunts down images and videos inside `wiiu/screenshots`, `wiiu/screencaptures`, and `DCIM` directories.
+* **Auto-Discovery:** Automatically hunts down images and videos inside `wiiu/screenshots`, `wiiu/screencaptures`, `riftwii/screenshots`, and `DCIM` directories.
 * **Custom AVI Thumbnail Extractor:** Modern browsers often fail to generate thumbnails for the Wii U's native Motion JPEG (MJPEG) `.avi` video clips. This tool includes a custom binary parser that reads the raw file bytes to extract the first JPEG frame, guaranteeing thumbnails for all your clips.
 * **Favorites System:** Star your best Splatoon matches or Smash Bros. moments. Favorites are saved to your browser's local storage so they remain starred the next time you plug in your SD card.
 * **Built-in Lightbox:** View full-resolution images and download your favorites directly from the web interface.
