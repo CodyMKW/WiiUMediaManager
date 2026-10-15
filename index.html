@@ -385,7 +385,7 @@
     items = [];
     rawEntries.forEach(function(e) {
       var path = cleanPath(e.relPath);
-      var isWiiu = path.indexOf("wiiu/screenshots") !== -1 || path.indexOf("wiiu/screencaptures") !== -1;
+      var isWiiu = path.indexOf("wiiu/screenshots") !== -1 || path.indexOf("wiiu/screencaptures") !== -1 || path.indexOf("riftwii/screenshots") !== -1;
       var isCamera = path.indexOf("dcim/") !== -1;
       
       if (!isWiiu && !isCamera) return;
