@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wii U Media Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d130e;
+    --bg-2: #121914;
+    --panel: #19241d;
+    --panel-hover: #203026;
+    --panel-active: #264030;
+    --border: #2a3a30;
+    --border-soft: #212f26;
+    --text: #edf4f0;
+    --text-dim: #8da396;
+    --text-faint: #5a7062;
+    --accent: #4ade80;
+    --accent-strong: #86efac;
+    --star: #ffca4a;
+    --danger: #ff7a7a;
+    --danger-strong: #ffb3b3;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 12px 30px rgba(0,0,0,0.35);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  a { color: inherit; }
+  button { font-family: inherit; }
+  ::selection { background: rgba(74, 222, 128, 0.25); }
+
+  /* ---------- header ---------- */
+  .hero {
+    position: relative;
+    overflow: hidden;
+    padding: 46px 24px 34px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border-soft);
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    inset: -40% -10% auto -10%;
+    height: 220%;
+    background:
+      radial-gradient(480px 220px at 8% 20%, rgba(74,222,128,0.12), transparent 60%),
+      linear-gradient(115deg, transparent 46%, rgba(134,239,172,0.08) 58%, transparent 72%);
+    pointer-events: none;
+  }
+  .hero-inner {
+    position: relative;
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .wordmark { display: flex; align-items: center; gap: 14px; }
+  .wordmark h1 { margin: 0; font-size: 30px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.1; }
+  .wordmark .sub { margin: 2px 0 0; font-size: 13.5px; color: var(--text-dim); font-weight: 500; }
+  .hero-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+  .hero-note { font-size: 13px; color: var(--text-dim); max-width: 300px; text-align: right; line-height: 1.5; }
+  .hero-note strong { color: var(--text); font-weight: 600; }
+  @media (max-width: 620px) { .hero-note { text-align: left; max-width: none; } .hero-right { justify-content: flex-start; } }
+
+  /* ---------- layout ---------- */
+  .page { max-width: 1100px; margin: 0 auto; padding: 0 24px 90px; }
+
+  /* ---------- source tabs ---------- */
+  .source-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 18px 0 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    flex-wrap: wrap;
+  }
+  .source-tab {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    border: 1px solid var(--border-soft);
+    border-bottom: none;
+    background: var(--bg-2);
+    color: var(--text-dim);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .source-tab .n { font-size: 11.5px; color: var(--text-faint); }
+  .source-tab.active { background: var(--panel); color: var(--text); border-color: var(--border); }
+  .source-tab.active .n { color: var(--text-dim); }
+  .source-tab svg { width: 15px; height: 15px; }
+
+  /* ---------- toolbar ---------- */
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(13,19,14,0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-soft);
+    border-radius: 0 var(--radius-md) var(--radius-md) var(--radius-md);
+    padding: 14px 18px;
+    margin: 0 0 26px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 15px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--panel);
+    color: var(--text);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+    white-space: nowrap;
+  }
+  .btn:hover { background: var(--panel-hover); border-color: #2e4a38; }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn.primary { background: linear-gradient(180deg, #86efac, #4ade80); border-color: transparent; color: #022c14; font-weight: 600; }
+  .btn.primary:hover { filter: brightness(1.05); }
+  .btn.ghost { background: transparent; }
+  .btn svg { width: 16px; height: 16px; flex: none; }
+
+  .seg { display: inline-flex; padding: 3px; background: var(--panel); border: 1px solid var(--border); border-radius: calc(var(--radius-sm) + 3px); gap: 2px; }
+  .seg button { border: none; background: transparent; color: var(--text-dim); font-size: 13px; font-weight: 500; font-family: inherit; padding: 7px 13px; border-radius: var(--radius-sm); cursor: pointer; }
+  .seg button.active { background: var(--panel-active); color: var(--text); }
+  .seg button:hover:not(.active) { color: var(--text); }
+
+  .toolbar-spacer { flex: 1; }
+  .count-pill { font-size: 12.5px; color: var(--text-dim); padding: 6px 4px; }
+
+  /* ---------- empty state ---------- */
+  .empty { margin-top: 20px; padding: 60px 30px; text-align: center; border: 1px dashed var(--border); border-radius: var(--radius-lg); background: var(--bg-2); }
+  .empty.drag-over { border-color: var(--accent); background: rgba(74,222,128,0.05); }
+  .empty svg.icon { width: 54px; height: 54px; color: var(--text-faint); margin-bottom: 18px; }
+  .empty h2 { margin: 0 0 10px; font-size: 19px; font-weight: 600; }
+  .empty p { margin: 0 auto 22px; max-width: 480px; color: var(--text-dim); font-size: 14px; line-height: 1.65; }
+  .empty code { background: var(--panel); border: 1px solid var(--border); padding: 1px 7px; border-radius: 6px; font-size: 12.5px; }
+
+  /* ---------- grid ---------- */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 14px; }
+  .card { position: relative; background: var(--panel); border: 1px solid var(--border-soft); border-radius: var(--radius-md); overflow: hidden; cursor: pointer; transition: border-color 0.12s ease, transform 0.08s ease; }
+  .card:hover { border-color: #2e4a38; }
+  .card:active { transform: scale(0.98); }
+  .card .thumb-wrap { position: relative; aspect-ratio: 16 / 9; background: #060a07; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .card img, .card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .badge { position: absolute; top: 8px; right: 8px; font-size: 10.5px; font-weight: 600; padding: 3px 7px; border-radius: 999px; letter-spacing: 0.02em; }
+  .badge.b-video { background: rgba(255,122,122,0.16); color: var(--danger-strong); border: 1px solid rgba(255,122,122,0.3); }
+  .badge.b-remote { position: absolute; top: 8px; left: 8px; right: auto; background: rgba(74,222,128,0.16); color: var(--accent-strong); border: 1px solid rgba(74,222,128,0.3); }
+  .star-btn { position: absolute; top: 6px; left: 6px; width: 28px; height: 28px; border-radius: 50%; border: none; background: rgba(10,15,11,0.55); color: rgba(255,255,255,0.75); display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.12s ease, color 0.12s ease, background 0.12s ease; z-index: 2; }
+  .card:hover .star-btn, .star-btn.active { opacity: 1; }
+  .star-btn.active { color: var(--star); background: rgba(10,15,11,0.65); }
+  .star-btn svg { width: 15px; height: 15px; }
+  .card.is-remote .star-btn { left: auto; right: 6px; }
+  .card .cap { padding: 8px 10px 9px; font-size: 11.5px; color: var(--text-dim); display: flex; justify-content: space-between; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---------- lightbox ---------- */
+  .lightbox { position: fixed; inset: 0; z-index: 100; background: rgba(6,10,7,0.88); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .lightbox.open { display: flex; }
+  .lb-shell { width: 100%; max-width: 960px; max-height: 100%; display: flex; flex-direction: column; gap: 14px; }
+  .lb-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .lb-title { font-size: 14px; color: var(--text-dim); }
+  .lb-title strong { color: var(--text); font-weight: 600; }
+  .lb-close { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--panel); color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer; flex: none; }
+  .lb-close:hover { background: var(--panel-hover); }
+  .lb-stage { position: relative; background: #060a07; border-radius: var(--radius-lg); border: 1px solid var(--border-soft); overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 400px; }
+  .lb-stage img.main, .lb-stage video.main { max-width: 100%; max-height: 70vh; display: block; }
+  .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.14); background: rgba(10,15,11,0.5); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+  .lb-nav:hover { background: rgba(10,15,11,0.75); }
+  .lb-nav.prev { left: 12px; }
+  .lb-nav.next { right: 12px; }
+  .lb-nav svg { width: 18px; height: 18px; }
+  .lb-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .lb-hint { font-size: 12px; color: var(--text-faint); margin-left: auto; }
+
+  /* ---------- avi player ---------- */
+  .avi-player-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; width: 100%; padding: 16px; }
+  .avi-player-wrap canvas.avi-canvas { max-width: 100%; max-height: 62vh; background: #000; border-radius: var(--radius-md); }
+  .avi-controls { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 640px; padding: 0 6px; }
+  .avi-play-btn { min-width: 44px; justify-content: center; font-size: 15px; }
+  .avi-seek { flex: 1; accent-color: var(--accent); }
+  .avi-time { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
+  .avi-note { color: var(--text-faint); font-size: 13px; padding: 24px; text-align: center; line-height: 1.6; }
+  .lb-remote-progress { color: var(--text-dim); font-size: 13px; padding: 34px; text-align: center; }
+
+  /* ---------- toast ---------- */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 10px 18px; border-radius: var(--radius-sm); font-size: 13px; box-shadow: var(--shadow); opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease; z-index: 200; max-width: 90vw; text-align: center; }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ---------- p2p ---------- */
+  .p2p-pill { font-size: 12.5px; color: var(--accent-strong); padding: 7px 12px; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.25); border-radius: 999px; white-space: nowrap; }
+  .modal-overlay { position: fixed; inset: 0; z-index: 150; background: rgba(6,10,7,0.72); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal-card { width: 100%; max-width: 440px; max-height: 90vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; box-shadow: var(--shadow); }
+  .modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .modal-head h3 { margin: 0; font-size: 17px; font-weight: 600; }
+  .modal-body label { display: block; font-size: 12.5px; color: var(--text-dim); margin: 14px 0 6px; font-weight: 500; }
+  .modal-body label:first-child { margin-top: 0; }
+  .modal-body input[type="text"] { width: 100%; padding: 9px 12px; background: var(--bg-2); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text); font-size: 13px; font-family: inherit; }
+  .modal-hint { font-size: 12px; color: var(--text-faint); line-height: 1.5; margin: 8px 0 0; }
+  .invite-row { display: flex; gap: 8px; }
+  .invite-row input { flex: 1; min-width: 0; }
+  .friend-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: var(--bg-2); border: 1px solid var(--border-soft); border-radius: var(--radius-sm); margin-bottom: 6px; font-size: 13px; gap: 10px; }
+  .friend-row span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .manual-connect { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-soft); }
+  .connected-row { display: none; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-soft); font-size: 13px; }
+  .connected-row.show { display: flex; }
+
+  footer.credit { max-width: 1100px; margin: 40px auto 0; padding: 0 24px; font-size: 12px; color: var(--text-faint); text-align: center; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="wordmark">
+      <div>
+        <h1>Wii U Media Manager</h1>
+        <p class="sub">Browse, sort and star your Wii U screenshots and clips locally</p>
+      </div>
+    </div>
+    <div class="hero-right">
+      <span class="p2p-pill" id="p2pStatusPill" style="display:none"></span>
+      <button class="btn ghost" id="p2pBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        Connect with a friend
+      </button>
+    </div>
+    <p class="hero-note">Everything runs <strong>in this browser tab</strong>. Your files are never uploaded anywhere — sharing with a friend goes straight from your browser to theirs.</p>
+  </div>
+</header>
+
+<div class="source-tabs" id="sourceTabs" style="display:none">
+  <button class="source-tab active" data-tab="wiiu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    Wii U <span class="n" id="tabWiiuCount"></span>
+  </button>
+  <button class="source-tab" data-tab="camera">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    DCIM <span class="n" id="tabCameraCount"></span>
+  </button>
+</div>
+
+<div class="page">
+  <div class="toolbar" id="toolbar" style="display:none">
+    <button class="btn primary" id="openBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+      Open again
+    </button>
+    <div class="seg" id="filterSeg">
+      <button data-filter="all" class="active">All</button>
+      <button data-filter="fav">Starred</button>
+    </div>
+    <div class="toolbar-spacer"></div>
+    <span class="count-pill" id="countPill"></span>
+  </div>
+
+  <input type="file" id="fileInput" webkitdirectory multiple style="display:none">
+
+  <div class="empty" id="emptyState">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+    <h2>Plug in your SD card</h2>
+    <p>
+      Select the <strong>root of the SD card</strong>. This automatically finds everything in
+      <code>wiiu/screenshots</code>, <code>wiiu/screencaptures</code>, <code>riftwii/screenshots</code>, and <code>DCIM</code>.
+      Includes full custom AVI frame extraction and in-browser AVI playback, plus optional peer-to-peer sharing with a friend.
+    </p>
+    <button class="btn primary" id="emptyOpenBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z"/></svg>
+      Open SD card
+    </button>
+  </div>
+
+  <div class="grid" id="grid" style="display:none"></div>
+</div>
+
+<div class="lightbox" id="lightbox" aria-hidden="true">
+  <div class="lb-shell">
+    <div class="lb-top">
+      <div class="lb-title"><strong id="lbTitleName"></strong></div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="btn ghost" id="lbFavBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 17.3-6.16 3.6 1.64-6.99L2 9.24l7.12-.61L12 2l2.88 6.63 7.12.61-5.48 4.67 1.64 6.99Z"/></svg>
+          <span id="lbFavLabel">Star</span>
+        </button>
+        <button class="lb-close" id="lbClose" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="lb-stage" id="lbStage">
+      <button class="lb-nav prev" id="lbPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <div id="lbImageArea"></div>
+      <button class="lb-nav next" id="lbNext"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div>
+    <div class="lb-controls">
+      <button class="btn ghost" id="downloadBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13m0 0-4-4m4 4 4-4M4 21h16"/></svg>
+        Download
+      </button>
+      <span class="lb-hint">&larr; &rarr; to browse &middot; Esc to close</span>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="p2pModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h3>Connect with a friend</h3>
+      <button class="lb-close" id="p2pModalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <label>Your name</label>
+      <input type="text" id="myNameInput" placeholder="What your friend sees">
+
+      <label>Your invite link</label>
+      <div class="invite-row">
+        <input type="text" id="inviteLinkInput" readonly>
+        <button class="btn primary" id="copyInviteBtn">Copy</button>
+      </div>
+      <p class="modal-hint">Send this to a friend. When they open it, you'll connect automatically — both of you need the tab open at the same time, same as a direct video call.</p>
+
+      <div id="friendsListWrap">
+        <label>Known friends</label>
+        <div id="friendsList"></div>
+      </div>
+
+      <div class="manual-connect">
+        <label>Or paste a friend's invite link / ID</label>
+        <div class="invite-row">
+          <input type="text" id="manualConnectInput" placeholder="Paste link or peer ID">
+          <button class="btn" id="manualConnectBtn">Connect</button>
+        </div>
+      </div>
+
+      <div class="connected-row" id="connectedRow">
+        <span id="connectedLabel"></span>
+        <button class="btn ghost" id="disconnectBtn">Disconnect</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer class="credit">Wii U Media Manager &middot; runs 100% locally &middot; P2P via PeerJS/WebRTC, nothing uploaded to a server</footer>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var items = [];
+  var visible = [];
+  var favorites = {};
+  var filterMode = "all";
+  var sourceTab = "wiiu";
+  var currentIndex = -1;
+  var objectUrls = [];
+  var remoteObjectUrls = [];
+  var FAV_KEY = "wiiu-companion:favorites:v2";
+
+  var $ = function(id) { return document.getElementById(id); };
+
+  function escapeHtml(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function showToast(msg) {
+    var t = $("toast");
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(function() { t.classList.remove("show"); }, 3500);
+  }
+
+  function loadFavorites() {
+    try { var raw = localStorage.getItem(FAV_KEY); favorites = raw ? JSON.parse(raw) : {}; }
+    catch (e) { favorites = {}; }
+  }
+  function saveFavorites() {
+    try { localStorage.setItem(FAV_KEY, JSON.stringify(favorites)); } catch (e) {}
+  }
+  function favKey(p) { return p.remote ? ("remote:" + p.friendId + ":" + p.id) : p.id; }
+
+  function cleanPath(path) {
+    return (path || "").replace(/\\/g, "/").toLowerCase();
+  }
+
+  // --- Custom AVI Frame Extractor (thumbnail only: first embedded JPEG frame) ---
+  // Reads the raw bytes of an AVI file to hunt down the first internal JPEG (FF D8 FF)
+  // since standard HTML5 video tags often fail to render MJPEG thumbnails.
+  function extractAviThumbnail(file) {
+    return new Promise(function(resolve, reject) {
+      var reader = new FileReader();
+      // Scan the first 2MB to find the earliest video frame
+      var slice = file.slice(0, 2 * 1024 * 1024);
+      reader.onload = function(e) {
+        var buffer = new Uint8Array(e.target.result);
+        var start = -1, end = -1;
+
+        // Search for JPEG SOI (Start of Image)
+        for (var i = 0; i < buffer.length - 2; i++) {
+          if (buffer[i] === 0xFF && buffer[i+1] === 0xD8 && buffer[i+2] === 0xFF) {
+            start = i;
+            break;
+          }
+        }
+        // If found, search for JPEG EOI (End of Image)
+        if (start !== -1) {
+          for (var j = start; j < buffer.length - 1; j++) {
+            if (buffer[j] === 0xFF && buffer[j+1] === 0xD9) {
+              end = j + 2;
+              break;
+            }
+          }
+        }
+
+        if (start !== -1 && end !== -1) {
+          var frameData = buffer.slice(start, end);
+          var blob = new Blob([frameData], { type: "image/jpeg" });
+          resolve(URL.createObjectURL(blob));
+        } else {
+          reject("No valid MJPEG frame found inside AVI.");
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(slice);
+    });
+  }
+
+  // --- Full RIFF/AVI MJPEG parser (for actual playback, not just a thumbnail) ---
+  // Walks the real chunk structure (avih / strl+strh / movi) instead of byte-sniffing,
+  // so it finds every frame in order rather than just the first one.
+  var AVI_MAX_PARSE_BYTES = 450 * 1024 * 1024; // sanity guard for huge captures
+
+  function readFourCC(view, off) {
+    return String.fromCharCode(view.getUint8(off), view.getUint8(off + 1), view.getUint8(off + 2), view.getUint8(off + 3));
+  }
+
+  function parseAviMjpeg(file) {
+    if (file.size > AVI_MAX_PARSE_BYTES) {
+      return Promise.reject(new Error("File is too large to parse in-browser"));
+    }
+    return file.arrayBuffer().then(function(buf) {
+      var view = new DataView(buf);
+      if (buf.byteLength < 12 || readFourCC(view, 0) !== "RIFF" || readFourCC(view, 8) !== "AVI ") {
+        throw new Error("Not a RIFF/AVI file");
+      }
+      var fileLen = buf.byteLength;
+      var avih = null;
+      var streams = [];
+      var movi = null;
+      var streamCursor = -1;
+
+      function parseStrl(start, end) {
+        streamCursor++;
+        var stream = { index: streamCursor, fccType: null, fccHandler: null };
+        var p = start;
+        while (p < end - 8) {
+          var cid = readFourCC(view, p);
+          var size = view.getUint32(p + 4, true);
+          var contentStart = p + 8;
+          if (cid === "strh" && size >= 8) {
+            stream.fccType = readFourCC(view, contentStart);
+            stream.fccHandler = readFourCC(view, contentStart + 4);
+          }
+          p += 8 + size + (size % 2);
+        }
+        streams.push(stream);
+      }
+
+      function walk(start, end) {
+        var p = start;
+        while (p < end - 8) {
+          var cid = readFourCC(view, p);
+          var size = view.getUint32(p + 4, true);
+          var contentStart = p + 8;
+          if (cid === "LIST") {
+            var listType = readFourCC(view, contentStart);
+            var innerStart = contentStart + 4;
+            var innerEnd = contentStart + size;
+            if (listType === "hdrl") {
+              walk(innerStart, innerEnd);
+            } else if (listType === "strl") {
+              parseStrl(innerStart, innerEnd);
+            } else if (listType === "movi") {
+              movi = { start: innerStart, end: Math.min(innerEnd, fileLen) };
+            }
+          } else if (cid === "avih" && size >= 40) {
+            avih = {
+              usPerFrame: view.getUint32(contentStart, true),
+              totalFrames: view.getUint32(contentStart + 16, true),
+              width: view.getUint32(contentStart + 32, true),
+              height: view.getUint32(contentStart + 36, true)
+            };
+          }
+          p += 8 + size + (size % 2);
+          if (p <= start) break; // guard against malformed zero-size infinite loop
+        }
+      }
+
+      walk(12, fileLen);
+
+      if (!avih) throw new Error("Missing AVI main header");
+      if (!movi) throw new Error("Missing video data (movi) chunk");
+
+      var videoStream = null;
+      for (var si = 0; si < streams.length; si++) {
+        if (streams[si].fccType === "vids") { videoStream = streams[si]; break; }
+      }
+      if (!videoStream) throw new Error("No video stream found");
+
+      var handler = (videoStream.fccHandler || "").toUpperCase();
+      if (handler.indexOf("MJPG") === -1 && handler.indexOf("MJPE") === -1) {
+        throw new Error("Video codec is " + (videoStream.fccHandler || "unknown") + ", not MJPEG");
+      }
+
+      var streamHex = videoStream.index.toString(16).padStart(2, "0");
+      var dcTag = streamHex + "dc";
+      var dbTag = streamHex + "db";
+
+      var frames = [];
+      var p = movi.start;
+      var end = movi.end;
+      while (p < end - 8) {
+        var cid = readFourCC(view, p);
+        var size = view.getUint32(p + 4, true);
+        if ((cid === dcTag || cid === dbTag) && size > 0) {
+          frames.push({ offset: p + 8, size: size });
+        }
+        p += 8 + size + (size % 2);
+        if (size === 0 && cid !== dcTag && cid !== dbTag) break; // guard
+      }
+
+      if (!frames.length) throw new Error("No video frames found");
+
+      return {
+        width: avih.width || 320,
+        height: avih.height || 180,
+        usPerFrame: avih.usPerFrame || 33333,
+        frames: frames
+      };
+    });
+  }
+
+  // --- Canvas-based MJPEG frame-sequence player ---
+  // Decodes frames lazily (just-in-time + a short lookahead) instead of all 1000+ at once,
+  // since each frame is really just a standalone JPEG sitting at a known byte offset.
+  function createAviPlayer(file, info) {
+    var canvas = document.createElement("canvas");
+    canvas.className = "avi-canvas";
+    canvas.width = info.width;
+    canvas.height = info.height;
+    var ctx = canvas.getContext("2d");
+
+    var frameIndex = 0;
+    var playing = false;
+    var rafId = null;
+    var playStartPerf = 0;
+    var playStartFrame = 0;
+    var destroyed = false;
+    var cache = new Map();
+    var cacheOrder = [];
+    var CACHE_LIMIT = 30;
+    var fpsMs = info.usPerFrame / 1000;
+
+    function cacheFrame(idx, bmp) {
+      cache.set(idx, bmp);
+      cacheOrder.push(idx);
+      while (cacheOrder.length > CACHE_LIMIT) {
+        var old = cacheOrder.shift();
+        if (old === idx) continue;
+        var b = cache.get(old);
+        if (b && b.close) { try { b.close(); } catch (e) {} }
+        cache.delete(old);
+      }
+    }
+
+    function decodeFrame(idx) {
+      if (idx < 0 || idx >= info.frames.length) return Promise.resolve(null);
+      if (cache.has(idx)) return Promise.resolve(cache.get(idx));
+      var f = info.frames[idx];
+      var blob = file.slice(f.offset, f.offset + f.size, "image/jpeg");
+      return createImageBitmap(blob).then(function(bmp) {
+        if (!destroyed) cacheFrame(idx, bmp);
+        return bmp;
+      }).catch(function() { return null; });
+    }
+
+    function prefetchAround(idx) {
+      for (var d = 1; d <= 5; d++) { decodeFrame(idx + d).catch(function() {}); }
+    }
+
+    function updateUI() {
+      seekBar.value = String(frameIndex);
+      var curSec = (frameIndex * fpsMs / 1000).toFixed(1);
+      var totSec = (info.frames.length * fpsMs / 1000).toFixed(1);
+      timeLabel.textContent = curSec + "s / " + totSec + "s";
+    }
+
+    function updatePlayIcon() { playBtn.textContent = playing ? "⏸" : "▶"; }
+
+    function drawFrame(idx) {
+      return decodeFrame(idx).then(function(bmp) {
+        if (destroyed) return;
+        if (bmp) { ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height); }
+        frameIndex = idx;
+        updateUI();
+        prefetchAround(idx);
+      });
+    }
+
+    function tick() {
+      if (!playing || destroyed) return;
+      var elapsed = performance.now() - playStartPerf;
+      var target = playStartFrame + Math.floor(elapsed / fpsMs);
+      if (target >= info.frames.length) {
+        playing = false;
+        drawFrame(info.frames.length - 1);
+        updatePlayIcon();
+        return;
+      }
+      if (target !== frameIndex) drawFrame(target);
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function play() {
+      if (playing || destroyed) return;
+      if (frameIndex >= info.frames.length - 1) frameIndex = 0;
+      playing = true;
+      playStartPerf = performance.now();
+      playStartFrame = frameIndex;
+      updatePlayIcon();
+      rafId = requestAnimationFrame(tick);
+    }
+    function pause() {
+      playing = false;
+      if (rafId) cancelAnimationFrame(rafId);
+      updatePlayIcon();
+    }
+    function seek(idx) {
+      pause();
+      idx = Math.max(0, Math.min(info.frames.length - 1, idx));
+      drawFrame(idx);
+    }
+
+    var controls = document.createElement("div");
+    controls.className = "avi-controls";
+    var playBtn = document.createElement("button");
+    playBtn.type = "button";
+    playBtn.className = "btn ghost avi-play-btn";
+    var seekBar = document.createElement("input");
+    seekBar.type = "range";
+    seekBar.min = "0";
+    seekBar.max = String(info.frames.length - 1);
+    seekBar.value = "0";
+    seekBar.className = "avi-seek";
+    var timeLabel = document.createElement("span");
+    timeLabel.className = "avi-time";
+
+    playBtn.addEventListener("click", function() { playing ? pause() : play(); });
+    seekBar.addEventListener("input", function() { seek(parseInt(seekBar.value, 10)); });
+
+    controls.appendChild(playBtn);
+    controls.appendChild(seekBar);
+    controls.appendChild(timeLabel);
+
+    var wrap = document.createElement("div");
+    wrap.className = "avi-player-wrap";
+    wrap.appendChild(canvas);
+    wrap.appendChild(controls);
+
+    drawFrame(0).then(function() { play(); });
+
+    return {
+      el: wrap,
+      destroy: function() {
+        destroyed = true;
+        pause();
+        cache.forEach(function(bmp) { if (bmp && bmp.close) { try { bmp.close(); } catch (e) {} } });
+        cache.clear();
+      }
+    };
+  }
+
+  function getMediaUrl(entry, forThumbnail) {
+    return entry.getFile().then(function(f) {
+      // If we specifically need a thumbnail and it's an AVI, route it to our custom parser
+      if (forThumbnail && /\.avi$/i.test(f.name)) {
+        return extractAviThumbnail(f).then(function(url) {
+          objectUrls.push(url);
+          return url;
+        }).catch(function() {
+          // Fallback to standard object URL if extraction fails
+          var url = URL.createObjectURL(f);
+          objectUrls.push(url);
+          return url;
+        });
+      }
+      var url = URL.createObjectURL(f);
+      objectUrls.push(url);
+      return url;
+    });
+  }
+
+  function loadEntries(rawEntries) {
+    items = [];
+    rawEntries.forEach(function(e) {
+      var path = cleanPath(e.relPath);
+      var isWiiu = path.indexOf("wiiu/screenshots") !== -1 || path.indexOf("wiiu/screencaptures") !== -1 || path.indexOf("riftwii/screenshots") !== -1;
+      var isCamera = path.indexOf("dcim/") !== -1;
+
+      if (!isWiiu && !isCamera) return;
+      if (!/\.(jpg|jpeg|png|mp4|m4v|avi)$/i.test(e.name)) return;
+
+      var isVideo = /\.(mp4|m4v|avi)$/i.test(e.name);
+      var isAvi = /\.avi$/i.test(e.name);
+      items.push({
+        id: e.relPath,
+        source: isWiiu ? "wiiu" : "camera",
+        name: e.name,
+        entry: e,
+        isVideo: isVideo,
+        isAvi: isAvi
+      });
+    });
+
+    items.sort(function(a, b) { return a.name > b.name ? -1 : 1; });
+    loadFavorites();
+
+    if (!items.length) return alert("No compatible Wii U or Camera media found.");
+
+    $("emptyState").style.display = "none";
+    $("grid").style.display = "grid";
+    $("toolbar").style.display = "flex";
+    $("sourceTabs").style.display = "flex";
+
+    sourceTab = items.some(function(i) { return i.source === "wiiu"; }) ? "wiiu" : "camera";
+    updateTabs();
+    rebuildAndRender();
+    broadcastCatalogIfConnected();
+  }
+
+  $("openBtn").addEventListener("click", function() { $("fileInput").click(); });
+  $("emptyOpenBtn").addEventListener("click", function() { $("fileInput").click(); });
+
+  $("fileInput").addEventListener("change", function(e) {
+    var files = e.target.files;
+    var entries = [];
+    for (var i = 0; i < files.length; i++) {
+      (function(f) {
+        entries.push({ name: f.name, relPath: f.webkitRelativePath || f.name, getFile: function() { return Promise.resolve(f); }});
+      })(files[i]);
+    }
+    loadEntries(entries);
+    this.value = "";
+  });
+
+  $("sourceTabs").addEventListener("click", function(e) {
+    var btn = e.target.closest(".source-tab");
+    if (!btn) return;
+    sourceTab = btn.getAttribute("data-tab");
+    filterMode = "all";
+    Array.prototype.forEach.call($("filterSeg").querySelectorAll("button"), function(b) {
+      b.classList.toggle("active", b.getAttribute("data-filter") === "all");
+    });
+    updateTabs();
+    rebuildAndRender();
+  });
+
+  $("filterSeg").addEventListener("click", function(e) {
+    var btn = e.target.closest("button");
+    if (!btn) return;
+    filterMode = btn.getAttribute("data-filter");
+    Array.prototype.forEach.call(this.querySelectorAll("button"), function(b) { b.classList.toggle("active", b === btn); });
+    rebuildAndRender();
+  });
+
+  function updateTabs() {
+    Array.prototype.forEach.call($("sourceTabs").querySelectorAll(".source-tab"), function(b) {
+      b.classList.toggle("active", b.getAttribute("data-tab") === sourceTab);
+    });
+    $("tabWiiuCount").textContent = items.filter(function(i) { return i.source === "wiiu"; }).length;
+    $("tabCameraCount").textContent = items.filter(function(i) { return i.source === "camera"; }).length;
+  }
+
+  function rebuildAndRender() {
+    var pool = sourceTab === "remote" ? remoteItems : items;
+    visible = pool.filter(function(i) {
+      if (sourceTab !== "remote" && i.source !== sourceTab) return false;
+      if (filterMode === "fav" && !favorites[favKey(i)]) return false;
+      return true;
+    });
+
+    $("countPill").textContent = visible.length + " items";
+    $("grid").innerHTML = "";
+
+    var observer = new IntersectionObserver(function(entries, obs) {
+      entries.forEach(function(entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        var p = visible[parseInt(el.getAttribute("data-idx"))];
+        obs.unobserve(el);
+
+        if (p.remote) {
+          requestRemoteThumb(p).then(function(url) {
+            var img = document.createElement("img");
+            img.src = url;
+            var wrap = el.querySelector(".thumb-wrap");
+            if (wrap) wrap.appendChild(img);
+          }).catch(function() {});
+          return;
+        }
+
+        getMediaUrl(p.entry, true).then(function(url) {
+          // If it's an AVI, our getMediaUrl function forces it to return an extracted JPEG blob URL
+          var media = document.createElement((p.isVideo && !p.isAvi) ? "video" : "img");
+          media.src = url;
+          if (p.isVideo && !p.isAvi) { media.muted = true; media.play().catch(function(){}); }
+          el.querySelector(".thumb-wrap").appendChild(media);
+        });
+      });
+    });
+
+    visible.forEach(function(p, idx) {
+      var c = document.createElement("div");
+      c.className = "card" + (p.remote ? " is-remote" : "");
+      c.setAttribute("data-idx", idx);
+
+      var isFav = !!favorites[favKey(p)];
+      var badges = p.isVideo ? '<span class="badge b-video">' + (p.isAvi ? 'AVI' : 'VIDEO') + '</span>' : '';
+      if (p.remote) badges += '<span class="badge b-remote">FRIEND</span>';
+
+      c.innerHTML = '<button class="star-btn ' + (isFav ? 'active' : '') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 17.3-6.16 3.6 1.64-6.99L2 9.24l7.12-.61L12 2l2.88 6.63 7.12.61-5.48 4.67 1.64 6.99Z"/></svg></button>' +
+        '<div class="thumb-wrap">' + badges + '</div>' +
+        '<div class="cap">' + escapeHtml(p.name) + '</div>';
+
+      c.addEventListener("click", function(e) {
+        if (e.target.closest(".star-btn")) {
+          toggleFav(p, c.querySelector(".star-btn"));
+          return;
+        }
+        openLightbox(idx);
+      });
+
+      $("grid").appendChild(c);
+      observer.observe(c);
+    });
+  }
+
+  function toggleFav(p, btn) {
+    var key = favKey(p);
+    if (favorites[key]) delete favorites[key]; else favorites[key] = true;
+    saveFavorites();
+    if (btn) btn.classList.toggle("active", !!favorites[key]);
+  }
+
+  var currentAviPlayer = null;
+  function closeAviPlayer() {
+    if (currentAviPlayer) { currentAviPlayer.destroy(); currentAviPlayer = null; }
+  }
+
+  function getPlaybackSource(p, onProgress) {
+    if (p.remote) {
+      return requestRemoteFullFile(p, onProgress).then(function(blob) {
+        var url = URL.createObjectURL(blob);
+        remoteObjectUrls.push(url);
+        return { url: url, file: blob };
+      });
+    }
+    return getMediaUrl(p.entry, false).then(function(url) {
+      return p.entry.getFile().then(function(file) {
+        return { url: url, file: file };
+      });
+    });
+  }
+
+  function openLightbox(idx) {
+    currentIndex = idx;
+    var p = visible[idx];
+    closeAviPlayer();
+
+    $("lbTitleName").textContent = p.name + (p.remote ? "  ·  from " + (activeFriend ? activeFriend.name : "a friend") : "");
+    var fbtn = $("lbFavBtn");
+    fbtn.classList.toggle("active", !!favorites[favKey(p)]);
+
+    $("lbImageArea").innerHTML = "";
+    $("downloadBtn").onclick = null;
+
+    if (p.remote && activeConnection) {
+      sendToConn({ type: "presence", name: p.name });
+    }
+
+    var progressEl = null;
+    if (p.remote) {
+      progressEl = document.createElement("div");
+      progressEl.className = "lb-remote-progress";
+      progressEl.textContent = "Requesting from " + (activeFriend ? activeFriend.name : "friend") + "…";
+      $("lbImageArea").appendChild(progressEl);
+    }
+
+    function onProgress(received, total) {
+      if (!progressEl) return;
+      var pct = total ? Math.round(received / total * 100) : 0;
+      progressEl.textContent = "Loading from " + (activeFriend ? activeFriend.name : "friend") + "… " + pct + "%";
+    }
+
+    getPlaybackSource(p, onProgress).then(function(res) {
+      if (currentIndex !== idx) return;
+      var url = res.url, file = res.file;
+      $("lbImageArea").innerHTML = "";
+
+      if (p.isVideo) {
+        if (p.isAvi) {
+          var loadingNote = document.createElement("div");
+          loadingNote.className = "avi-note";
+          loadingNote.textContent = "Reading AVI frames…";
+          $("lbImageArea").appendChild(loadingNote);
+          parseAviMjpeg(file).then(function(info) {
+            if (currentIndex !== idx) return;
+            $("lbImageArea").innerHTML = "";
+            currentAviPlayer = createAviPlayer(file, info);
+            $("lbImageArea").appendChild(currentAviPlayer.el);
+          }).catch(function(err) {
+            if (currentIndex !== idx) return;
+            $("lbImageArea").innerHTML = "";
+            var note = document.createElement("div");
+            note.className = "avi-note";
+            note.innerHTML = "Couldn't play this AVI in-browser (" + escapeHtml((err && err.message) || err) + ").<br>Use the Download button below to view it in VLC or similar.";
+            $("lbImageArea").appendChild(note);
+          });
+        } else {
+          var v = document.createElement("video");
+          v.className = "main";
+          v.controls = true; v.autoplay = true; v.src = url;
+          v.play().catch(function(){});
+          $("lbImageArea").appendChild(v);
+        }
+      } else {
+        var img = document.createElement("img");
+        img.className = "main";
+        img.src = url;
+        $("lbImageArea").appendChild(img);
+      }
+
+      $("downloadBtn").onclick = function() {
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = p.name;
+        a.click();
+      };
+    }).catch(function(err) {
+      if (currentIndex !== idx) return;
+      $("lbImageArea").innerHTML = "";
+      var note = document.createElement("div");
+      note.className = "avi-note";
+      note.textContent = "Couldn't load this file" + (p.remote ? " from your friend" : "") + " (" + ((err && err.message) || err) + ").";
+      $("lbImageArea").appendChild(note);
+    });
+
+    $("lightbox").classList.add("open");
+  }
+
+  $("lbClose").addEventListener("click", function() {
+    closeAviPlayer();
+    $("lightbox").classList.remove("open");
+    $("lbImageArea").innerHTML = "";
+    if (activeConnection) sendToConn({ type: "presence", name: null });
+  });
+  $("lbPrev").addEventListener("click", function() { if (currentIndex > 0) openLightbox(currentIndex - 1); });
+  $("lbNext").addEventListener("click", function() { if (currentIndex < visible.length - 1) openLightbox(currentIndex + 1); });
+  $("lbFavBtn").addEventListener("click", function() { toggleFav(visible[currentIndex], this); rebuildAndRender(); });
+
+  document.addEventListener("keydown", function(e) {
+    if (!$("lightbox").classList.contains("open")) return;
+    if (e.key === "Escape") $("lbClose").click();
+    if (e.key === "ArrowLeft") $("lbPrev").click();
+    if (e.key === "ArrowRight") $("lbNext").click();
+  });
+
+  // =========================================================================
+  // ---------------------------- P2P sharing -------------------------------
+  // Permanent peer ID + invite link (same pattern as Switch Hub), a small
+  // friends list, a lightweight catalog sync, and chunked on-demand transfer
+  // for thumbnails and full files, with a live "viewing" presence indicator.
+  // No chat here on purpose — just gallery sharing.
+  // =========================================================================
+
+  var PEER_ID_KEY = "wiiu-companion:peerid:v1";
+  var PROFILE_NAME_KEY = "wiiu-companion:myname:v1";
+  var FRIENDS_KEY = "wiiu-companion:friends:v1";
+  var CHUNK_SIZE = 64 * 1024;
+  var BUFFER_HIGH_WATER = 2 * 1024 * 1024;
+  var PING_INTERVAL_MS = 5000;
+  var PING_TIMEOUT_MS = 13000;
+
+  var myName = (function() {
+    try { return localStorage.getItem(PROFILE_NAME_KEY) || "Wii U Friend"; } catch (e) { return "Wii U Friend"; }
+  })();
+  var friends = (function() {
+    try { return JSON.parse(localStorage.getItem(FRIENDS_KEY) || "[]"); } catch (e) { return []; }
+  })();
+
+  var peer = null;
+  var myPeerId = null;
+  var activeConnection = null;
+  var activeFriend = null;
+  var remoteItems = [];
+  var pingIntervalId = null;
+  var lastPongAt = 0;
+  var pingStartTime = 0;
+  var pingRtt = null;
+  var reqCounter = 0;
+  var pendingRequests = new Map();
+  var thumbCallbacks = new Map();
+  var incomingTransfers = new Map();
+
+  function saveFriends() { try { localStorage.setItem(FRIENDS_KEY, JSON.stringify(friends)); } catch (e) {} }
+  function upsertFriend(id, name) {
+    var f = friends.find(function(x) { return x.id === id; });
+    if (f) { f.name = name; } else { friends.push({ id: id, name: name }); }
+    saveFriends();
+  }
+  function friendNameFor(id) {
+    var f = friends.find(function(x) { return x.id === id; });
+    return f ? f.name : null;
+  }
+
+  function getPersistentPeerId() {
+    var id;
+    try { id = localStorage.getItem(PEER_ID_KEY); } catch (e) { id = null; }
+    if (!id) {
+      id = "wiiu-" + Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 6);
+      try { localStorage.setItem(PEER_ID_KEY, id); } catch (e) {}
+    }
+    return id;
+  }
+
+  function getInviteLink() {
+    var url = new URL(location.href);
+    url.search = "";
+    url.hash = "";
+    url.searchParams.set("peer", myPeerId);
+    return url.toString();
+  }
+
+  function initPeer() {
+    if (typeof Peer === "undefined") {
+      showToast("Couldn't load the P2P library — check your internet connection.");
+      return;
+    }
+    var wanted = getPersistentPeerId();
+    myPeerId = wanted;
+    peer = new Peer(wanted, { debug: 0 });
+    wireIncoming();
+    peer.on("open", function(id) {
+      myPeerId = id;
+      renderP2pPanel();
+      autoConnectFromInvite();
+    });
+    peer.on("error", function(err) {
+      if (err && err.type === "unavailable-id") {
+        peer = new Peer(undefined, { debug: 0 });
+        wireIncoming();
+        peer.on("open", function(id) { myPeerId = id; renderP2pPanel(); autoConnectFromInvite(); });
+        peer.on("error", function() {});
+      } else if (err && err.type === "peer-unavailable") {
+        showToast("That friend isn't online right now.");
+      }
+    });
+    peer.on("disconnected", function() { try { peer.reconnect(); } catch (e) {} });
+  }
+
+  function wireIncoming() {
+    peer.on("connection", function(conn) { wireConnection(conn); });
+  }
+
+  function autoConnectFromInvite() {
+    var params = new URLSearchParams(location.search);
+    var targetId = params.get("peer");
+    if (targetId && targetId !== myPeerId) connectToPeerId(targetId);
+    if (targetId) {
+      params.delete("peer");
+      var qs = params.toString();
+      history.replaceState(null, "", location.pathname + (qs ? "?" + qs : "") + location.hash);
+    }
+  }
+
+  function connectToPeerId(id) {
+    if (!peer || !id) return;
+    if (activeConnection && activeConnection.open && activeConnection.peer === id) return;
+    var conn = peer.connect(id, { reliable: true });
+    wireConnection(conn);
+  }
+
+  function wireConnection(conn) {
+    conn.on("open", function() {
+      if (activeConnection && activeConnection !== conn && activeConnection.open) {
+        try { activeConnection.close(); } catch (e) {}
+      }
+      activeConnection = conn;
+      activeFriend = { id: conn.peer, name: friendNameFor(conn.peer) || "Friend" };
+      sendToConn({ type: "hello", name: myName });
+      startPingLoop();
+      renderConnectionStatus();
+      renderP2pPanel();
+      broadcastCatalogIfConnected();
+      showToast("Connected" + (activeFriend.name ? " to " + activeFriend.name : "") + ".");
+    });
+    conn.on("data", function(data) { handleIncomingData(data, conn); });
+    conn.on("close", function() {
+      if (activeConnection === conn) {
+        showToast((activeFriend && activeFriend.name ? activeFriend.name : "Your friend") + " went offline.");
+        teardownConnection();
+      }
+    });
+    conn.on("error", function() {
+      if (activeConnection === conn) teardownConnection();
+    });
+  }
+
+  function teardownConnection() {
+    if (pingIntervalId) { clearInterval(pingIntervalId); pingIntervalId = null; }
+    activeConnection = null;
+    activeFriend = null;
+    remoteItems = [];
+    pendingRequests.forEach(function(req) { try { req.reject(new Error("Disconnected")); } catch (e) {} });
+    pendingRequests.clear();
+    thumbCallbacks.clear();
+    incomingTransfers.clear();
+    remoteObjectUrls.forEach(function(u) { try { URL.revokeObjectURL(u); } catch (e) {} });
+    remoteObjectUrls = [];
+    removeRemoteTab();
+    if (sourceTab === "remote") {
+      sourceTab = items.some(function(i) { return i.source === "wiiu"; }) ? "wiiu" : "camera";
+    }
+    renderConnectionStatus();
+    renderP2pPanel();
+    updateTabs();
+    rebuildAndRender();
+  }
+
+  function startPingLoop() {
+    if (pingIntervalId) clearInterval(pingIntervalId);
+    lastPongAt = Date.now();
+    function ping() {
+      if (!(activeConnection && activeConnection.open)) return;
+      if (Date.now() - lastPongAt > PING_TIMEOUT_MS) {
+        try { activeConnection.close(); } catch (e) {}
+        return;
+      }
+      pingStartTime = performance.now();
+      sendToConn({ type: "ping" });
+    }
+    ping();
+    pingIntervalId = setInterval(ping, PING_INTERVAL_MS);
+  }
+
+  function sendToConn(obj) {
+    if (activeConnection && activeConnection.open) {
+      try { activeConnection.send(obj); } catch (e) {}
+    }
+  }
+
+  function buildLocalCatalog() {
+    return items.map(function(p) {
+      return { id: p.id, name: p.name, source: p.source, isVideo: p.isVideo, isAvi: p.isAvi };
+    });
+  }
+
+  function broadcastCatalogIfConnected() {
+    if (activeConnection && activeConnection.open) {
+      sendToConn({ type: "catalog", items: buildLocalCatalog() });
+    }
+  }
+
+  function handleIncomingData(data, conn) {
+    if (!data || !data.type) return;
+    switch (data.type) {
+      case "hello":
+        if (activeFriend) {
+          activeFriend.name = data.name || activeFriend.name;
+          upsertFriend(conn.peer, activeFriend.name);
+        }
+        renderConnectionStatus();
+        renderP2pPanel();
+        sendToConn({ type: "catalog", items: buildLocalCatalog() });
+        break;
+      case "ping":
+        sendToConn({ type: "pong" });
+        break;
+      case "pong":
+        lastPongAt = Date.now();
+        pingRtt = Math.round(performance.now() - pingStartTime);
+        renderConnectionStatus();
+        break;
+      case "catalog":
+        remoteItems = (data.items || []).map(function(it) {
+          return { id: it.id, name: it.name, source: "remote", isVideo: !!it.isVideo, isAvi: !!it.isAvi, remote: true, remoteId: it.id, friendId: conn.peer };
+        });
+        $("emptyState").style.display = "none";
+        $("grid").style.display = "grid";
+        $("toolbar").style.display = "flex";
+        $("sourceTabs").style.display = "flex";
+        ensureRemoteTab();
+        if (!items.length && sourceTab !== "remote") sourceTab = "remote";
+        updateTabs();
+        if (sourceTab === "remote" || !items.length) rebuildAndRender();
+        break;
+      case "thumb_request":
+        handleThumbRequest(data.id, conn);
+        break;
+      case "file_request":
+        handleFileRequest(data.id, data.reqId, conn);
+        break;
+      case "file_start":
+        incomingTransfers.set(data.transferId, { kind: data.kind, id: data.id, reqId: data.reqId, size: data.size, mime: data.mime, chunks: [], received: 0 });
+        break;
+      case "file_chunk": {
+        var t = incomingTransfers.get(data.transferId);
+        if (!t) break;
+        t.chunks.push(data.data);
+        t.received += (data.data && data.data.byteLength) || 0;
+        if (t.kind === "file") {
+          var pending = pendingRequests.get(t.reqId);
+          if (pending && pending.onProgress) pending.onProgress(t.received, t.size);
+        }
+        break;
+      }
+      case "file_end": {
+        var ft = incomingTransfers.get(data.transferId);
+        if (!ft) break;
+        incomingTransfers.delete(data.transferId);
+        var blob = new Blob(ft.chunks, { type: ft.mime || "application/octet-stream" });
+        if (ft.kind === "thumb") {
+          var url = URL.createObjectURL(blob);
+          remoteObjectUrls.push(url);
+          var cb = thumbCallbacks.get(ft.id);
+          if (cb) { cb.resolve(url); thumbCallbacks.delete(ft.id); }
+        } else if (ft.kind === "file") {
+          var p2 = pendingRequests.get(ft.reqId);
+          if (p2) { p2.resolve(blob); pendingRequests.delete(ft.reqId); }
+        }
+        break;
+      }
+      case "presence":
+        renderConnectionStatus(data.name || null);
+        break;
+    }
+  }
+
+  function generateThumbnailBlob(file, isVideo, isAvi) {
+    if (isAvi) {
+      return extractAviThumbnail(file).then(function(url) {
+        return fetch(url).then(function(r) { return r.blob(); }).then(function(blob) {
+          URL.revokeObjectURL(url);
+          return blob;
+        });
+      });
+    }
+    if (isVideo) {
+      return new Promise(function(resolve, reject) {
+        var v = document.createElement("video");
+        v.preload = "metadata";
+        v.muted = true;
+        var url = URL.createObjectURL(file);
+        v.src = url;
+        v.addEventListener("loadeddata", function() {
+          try {
+            var c = document.createElement("canvas");
+            c.width = v.videoWidth || 320; c.height = v.videoHeight || 180;
+            c.getContext("2d").drawImage(v, 0, 0, c.width, c.height);
+            c.toBlob(function(b) { URL.revokeObjectURL(url); resolve(b); }, "image/jpeg", 0.7);
+          } catch (e) { URL.revokeObjectURL(url); reject(e); }
+        });
+        v.addEventListener("error", function() { URL.revokeObjectURL(url); reject(new Error("video decode failed")); });
+      });
+    }
+    return createImageBitmap(file).then(function(bmp) {
+      var maxDim = 340;
+      var scale = Math.min(1, maxDim / Math.max(bmp.width, bmp.height));
+      var c = document.createElement("canvas");
+      c.width = Math.max(1, Math.round(bmp.width * scale));
+      c.height = Math.max(1, Math.round(bmp.height * scale));
+      c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+      return new Promise(function(resolve) { c.toBlob(resolve, "image/jpeg", 0.78); });
+    });
+  }
+
+  function handleThumbRequest(id, conn) {
+    var p = items.find(function(x) { return x.id === id; });
+    if (!p) return;
+    p.entry.getFile().then(function(file) {
+      return generateThumbnailBlob(file, p.isVideo, p.isAvi);
+    }).then(function(blob) {
+      if (blob) sendBlobChunked(conn, blob, { kind: "thumb", id: id });
+    }).catch(function() {});
+  }
+
+  function handleFileRequest(id, reqId, conn) {
+    var p = items.find(function(x) { return x.id === id; });
+    if (!p) return;
+    showToast((activeFriend && activeFriend.name ? activeFriend.name : "Your friend") + " is viewing \"" + p.name + "\"");
+    p.entry.getFile().then(function(file) {
+      sendBlobChunked(conn, file, { kind: "file", reqId: reqId });
+    }).catch(function() {});
+  }
+
+  function waitForBufferedAmountLow(conn) {
+    return new Promise(function(resolve) {
+      var dc = conn.dataChannel;
+      if (!dc || dc.bufferedAmount < BUFFER_HIGH_WATER) { resolve(); return; }
+      (function check() {
+        if (!dc || dc.bufferedAmount < BUFFER_HIGH_WATER) resolve();
+        else setTimeout(check, 50);
+      })();
+    });
+  }
+
+  function sendBlobChunked(conn, blob, meta) {
+    var total = blob.size;
+    var transferId = meta.kind + ":" + (meta.id || meta.reqId) + ":" + Date.now() + ":" + Math.random().toString(36).slice(2, 7);
+    sendToConn({ type: "file_start", transferId: transferId, kind: meta.kind, id: meta.id, reqId: meta.reqId, size: total, mime: blob.type || "" });
+    var offset = 0;
+    function sendNext() {
+      if (!conn.open) return;
+      if (offset >= total) {
+        sendToConn({ type: "file_end", transferId: transferId });
+        return;
+      }
+      var slice = blob.slice(offset, offset + CHUNK_SIZE);
+      slice.arrayBuffer().then(function(buf) {
+        return waitForBufferedAmountLow(conn).then(function() {
+          if (!conn.open) return;
+          conn.send({ type: "file_chunk", transferId: transferId, data: buf });
+          offset += buf.byteLength;
+          sendNext();
+        });
+      }).catch(function() {});
+    }
+    sendNext();
+  }
+
+  function requestRemoteThumb(p) {
+    return new Promise(function(resolve, reject) {
+      if (!(activeConnection && activeConnection.open)) { reject(new Error("Not connected")); return; }
+      thumbCallbacks.set(p.id, { resolve: resolve, reject: reject });
+      sendToConn({ type: "thumb_request", id: p.id });
+    });
+  }
+
+  function requestRemoteFullFile(p, onProgress) {
+    return new Promise(function(resolve, reject) {
+      if (!(activeConnection && activeConnection.open)) { reject(new Error("Not connected")); return; }
+      var reqId = "r" + (++reqCounter);
+      pendingRequests.set(reqId, { resolve: resolve, reject: reject, onProgress: onProgress });
+      sendToConn({ type: "file_request", id: p.remoteId, reqId: reqId });
+    });
+  }
+
+  function ensureRemoteTab() {
+    var existing = $("remoteSourceTab");
+    if (existing) {
+      existing.querySelector(".n").textContent = remoteItems.length;
+      return;
+    }
+    var btn = document.createElement("button");
+    btn.className = "source-tab";
+    btn.id = "remoteSourceTab";
+    btn.setAttribute("data-tab", "remote");
+    btn.innerHTML = '🤝 ' + escapeHtml(activeFriend ? activeFriend.name : "Friend") + ' <span class="n">' + remoteItems.length + '</span>';
+    $("sourceTabs").appendChild(btn);
+  }
+  function removeRemoteTab() {
+    var el = $("remoteSourceTab");
+    if (el) el.remove();
+  }
+
+  function renderConnectionStatus(peerViewing) {
+    var pill = $("p2pStatusPill");
+    if (!pill) return;
+    if (activeConnection && activeConnection.open) {
+      var rttText = pingRtt != null ? " · " + pingRtt + "ms" : "";
+      var viewingText = peerViewing ? " · viewing \"" + peerViewing + "\"" : "";
+      pill.textContent = "🟢 Connected to " + (activeFriend ? activeFriend.name : "friend") + rttText + viewingText;
+      pill.style.display = "";
+    } else {
+      pill.style.display = "none";
+    }
+  }
+
+  function renderFriendsList() {
+    var wrap = $("friendsList");
+    if (!wrap) return;
+    wrap.innerHTML = "";
+    if (!friends.length) {
+      wrap.innerHTML = '<p class="modal-hint">No friends yet — share your invite link, or paste theirs below.</p>';
+      return;
+    }
+    friends.forEach(function(f) {
+      var row = document.createElement("div");
+      row.className = "friend-row";
+      var isActive = activeFriend && activeFriend.id === f.id && activeConnection && activeConnection.open;
+      var nameSpan = document.createElement("span");
+      nameSpan.textContent = f.name;
+      var btn = document.createElement("button");
+      btn.className = "btn ghost";
+      btn.textContent = isActive ? "Connected" : "Connect";
+      btn.disabled = !!isActive;
+      btn.addEventListener("click", function() { connectToPeerId(f.id); });
+      row.appendChild(nameSpan);
+      row.appendChild(btn);
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderP2pPanel() {
+    var nameInput = $("myNameInput");
+    if (nameInput && document.activeElement !== nameInput) nameInput.value = myName;
+    var inviteInput = $("inviteLinkInput");
+    if (inviteInput) inviteInput.value = myPeerId ? getInviteLink() : "Connecting…";
+    var row = $("connectedRow");
+    if (activeConnection && activeConnection.open) {
+      row.classList.add("show");
+      $("connectedLabel").textContent = "Connected to " + (activeFriend ? activeFriend.name : "friend");
+    } else {
+      row.classList.remove("show");
+    }
+    renderFriendsList();
+  }
+
+  $("p2pBtn").addEventListener("click", function() {
+    renderP2pPanel();
+    $("p2pModal").classList.add("open");
+  });
+  $("p2pModalClose").addEventListener("click", function() { $("p2pModal").classList.remove("open"); });
+  $("p2pModal").addEventListener("click", function(e) { if (e.target === $("p2pModal")) $("p2pModal").classList.remove("open"); });
+
+  $("myNameInput").addEventListener("change", function() {
+    myName = this.value.trim() || "Wii U Friend";
+    try { localStorage.setItem(PROFILE_NAME_KEY, myName); } catch (e) {}
+    if (activeConnection) sendToConn({ type: "hello", name: myName });
+  });
+
+  $("copyInviteBtn").addEventListener("click", function() {
+    var input = $("inviteLinkInput");
+    input.select();
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(input.value).then(function() { showToast("Invite link copied!"); }).catch(function() {
+        try { document.execCommand("copy"); showToast("Invite link copied!"); } catch (e) {}
+      });
+    } else {
+      try { document.execCommand("copy"); showToast("Invite link copied!"); } catch (e) {}
+    }
+  });
+
+  $("manualConnectBtn").addEventListener("click", function() {
+    var raw = $("manualConnectInput").value.trim();
+    if (!raw) return;
+    var id = raw;
+    try {
+      if (raw.indexOf("http") === 0) {
+        var u = new URL(raw);
+        id = u.searchParams.get("peer") || raw;
+      }
+    } catch (e) {}
+    connectToPeerId(id);
+    $("manualConnectInput").value = "";
+    $("p2pModal").classList.remove("open");
+  });
+
+  $("disconnectBtn").addEventListener("click", function() {
+    if (activeConnection) { try { activeConnection.close(); } catch (e) {} }
+    teardownConnection();
+  });
+
+  initPeer();
+})();
+</script>
+</body>
+</html>
